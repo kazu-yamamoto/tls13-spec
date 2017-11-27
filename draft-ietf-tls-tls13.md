@@ -2199,7 +2199,19 @@ A number of TLS messages contain tag-length-value encoded extensions structures.
 
        struct {
            ExtensionType extension_type;
-           opaque extension_data<0..2^16-1>;
+           select (Extension.extension_type) {
+               case supported_groups:        NamedGroupList;
+               case signature_algorithms:    SignatureSchemeList;
+               case key_share:               KeyShare;
+               case pre_shared_key:          PreSharedKeyExtension;
+               case early_data:              EarlyDataIndication;
+               case supported_versions:      SupportedVersions;
+               case cookie:                  Cookie;
+               case psk_key_exchange_modes:  PskKeyExchangeModes;
+               case oid_filters:             OIDFilterExtension;
+               case certificate_authorities: CertificateAuthoritiesExtension;
+               case post_handshake_auth:     PostHandshakeAuth;
+           };
        } Extension;
 
        enum {
@@ -2785,7 +2797,9 @@ group selection from the server at the cost of an additional round trip.
 
        struct {
            NamedGroup group;
-           opaque key_exchange<1..2^16-1>;
+           select (KeyShareEntry.group) {
+             case secp384r1: UncompressedPointRepresentation;
+          };
        } KeyShareEntry;
 
 group
@@ -3125,7 +3139,9 @@ The "extension_data" field of this extension contains a
            uint32 obfuscated_ticket_age;
        } PskIdentity;
 
-       opaque PskBinderEntry<32..255>;
+       struct {
+           opaque binder<32..255>;
+       } PskBinderEntry;
 
        struct {
            PskIdentity identities<7..2^16-1>;
@@ -3493,6 +3509,7 @@ Structure of this message:
        } CertificateType;
 
        struct {
+           Extension extensions<0..2^16-1>;
            select (certificate_type) {
                case RawPublicKey:
                  /* From RFC 7250 ASN.1_subjectPublicKeyInfo */
@@ -3501,7 +3518,6 @@ Structure of this message:
                case X509:
                  opaque cert_data<1..2^24-1>;
            };
-           Extension extensions<0..2^16-1>;
        } CertificateEntry;
 
        struct {
@@ -4174,7 +4190,11 @@ MAY be split across multiple records or coalesced into a single record.
            ContentType type;
            ProtocolVersion legacy_record_version;
            uint16 length;
-           opaque fragment[TLSPlaintext.length];
+           select (TLSInnerPlaintext.type) {
+               case alert: Alert;
+               case handshake: Handshake;
+               case application_data: opaque fragment[TLSPlaintext.length];
+           };
        } TLSPlaintext;
 
 type
