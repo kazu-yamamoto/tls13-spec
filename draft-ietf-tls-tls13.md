@@ -2202,7 +2202,7 @@ A number of TLS messages contain tag-length-value encoded extensions structures.
            select (Extension.extension_type) {
                case supported_groups:        NamedGroupList;
                case signature_algorithms:    SignatureSchemeList;
-               case key_share:               KeyShare;
+               case key_share:               KeyShareEntry;
                case pre_shared_key:          PreSharedKeyExtension;
                case early_data:              EarlyDataIndication;
                case supported_versions:      SupportedVersions;
@@ -2233,7 +2233,7 @@ A number of TLS messages contain tag-length-value encoded extensions structures.
            supported_versions(43),                     /* [[this document]] */
            cookie(44),                                 /* [[this document]] */
            psk_key_exchange_modes(45),                 /* [[this document]] */
-           RESERVED(46),                               /* Used but never assigned */
+           RESERVED2(46),                              /* Used but never assigned */
            certificate_authorities(47),                /* [[this document]] */
            oid_filters(48),                            /* [[this document]] */
            post_handshake_auth(49),                    /* [[this document]] */
@@ -4258,7 +4258,7 @@ by an encrypted body, which itself contains a type and optional padding.
        } TLSInnerPlaintext;
 
        struct {
-           ContentType opaque_type = application_data; /* 23 */
+           ContentType opaque_type = 23; /* application_data */
            ProtocolVersion legacy_record_version = 0x0303; /* TLS v1.2 */
            uint16 length;
            opaque encrypted_record[TLSCiphertext.length];
